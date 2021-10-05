@@ -1,0 +1,22 @@
+{
+  "name": "y",
+  "version": "0.0.1",
+  "description": "Fixed point arithmetic with BigInt",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node -r esm ./test/test.js"
+  },
+  "keywords": [
+    "fixed",
+    "money",
+    "bigint",
+    "bigdecimal"
+  ],
+  "author": "munrocket",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.13.3",
+    "esm": "^3.2.25",
+    "zora": "^5.0.0"
+  }
+}
