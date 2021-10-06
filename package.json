@@ -1,7 +1,7 @@
 {
   "name": "y",
   "version": "0.0.1",
-  "description": "Fixed point arithmetic with BigInt",
+  "description": "Fixed point arithmetic with BigInt. Can be used for money or scientific calculations with known precision.",
   "main": "src/index.js",
   "scripts": {
     "test": "node -r esm ./test/test.js"
