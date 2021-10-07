@@ -81,7 +81,7 @@ test('multiplication', t => {
 
 test('division', t => {
   FixedPoint.setMode('RN');
-  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.83', 'RN1');
+  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'RN1');
   t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.71', 'RN1');
   FixedPoint.setMode('RZ');
   t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'RZ');
@@ -94,11 +94,10 @@ test('division', t => {
   t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.70', 'RN1');
 });
 
-// Fix for BigInt for testing https://medium.com/@vitalytomilov/reversible-bigint-serialization-8cba9deefad7
+// Patch BigInt for testing
 BigInt.prototype.toJSON = function () { return `${this.toString()}n`; };
 
-// https://sites.google.com/site/icuprojectuserguide/formatparse/numbers/rounding-modes
-// https://unicode-org.github.io/icu/userguide/format_parse/numbers/rounding-modes.html
+// ICU Rounding Modes: https://sites.google.com/site/icuprojectuserguide/formatparse/numbers/rounding-modes
 test('rounding', t => {
   let table = {
     'NUM': [-2.0,-1.9,-1.8,-1.7,-1.6,-1.5,-1.4,-1.3,-1.2,-1.1,-1.0,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,
@@ -111,24 +110,28 @@ test('rounding', t => {
     'HALFDOWN': [-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-0,-0,-0,-0,-0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
     'HALFUP':   [-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-0,-0,-0,-0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
   };
+  FixedPoint.setMode('RN');
+  for (let i = 0; i < 41; i++) {
+    t.equal(new FixedPoint(table['NUM'][i]).div(100).num, BigInt(table['HALFEVEN'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).num, BigInt(table['HALFEVEN'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, -BigInt(table['HALFEVEN'][i]), 'rounding, i=' + i);
+  }
   FixedPoint.setMode('RZ');
   for (let i = 0; i < 41; i++) {
     t.equal(new FixedPoint(table['NUM'][i]).div(100).num, BigInt(table['ZERO'][i]), 'rounding, i=' + i);
     t.equal(new FixedPoint(-table['NUM'][i]).div(-100).num, BigInt(table['ZERO'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, -BigInt(table['ZERO'][i]), 'rounding, i=' + i);
   }
   FixedPoint.setMode('RU');
   for (let i = 0; i < 41; i++) {
     t.equal(new FixedPoint(table['NUM'][i]).div(100).num, BigInt(table['CEILING'][i]), 'rounding, i=' + i);
-    //t.equal(new FixedPoint(-table['NUM'][i]).div(-100).num, BigInt(table['CEILING'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).num, BigInt(table['CEILING'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, BigInt(Math.ceil(-table['NUM'][i])), 'rounding, i=' + i);
   }
   FixedPoint.setMode('RD');
   for (let i = 0; i < 41; i++) {
     t.equal(new FixedPoint(table['NUM'][i]).div(100).num, BigInt(table['FLOOR'][i]), 'rounding, i=' + i);
-    //t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, BigInt(-table['FLOOR'][i]), 'rounding, i=' + i);
-  }
-  FixedPoint.setMode('RN');
-  for (let i = 0; i < 41; i++) {
-    t.equal(new FixedPoint(table['NUM'][i]).div(100).num, BigInt(table['HALFEVEN'][i]), 'rounding, i=' + i);
-    //t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, BigInt(-table['HALFEVEN'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).num, BigInt(table['FLOOR'][i]), 'rounding, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, BigInt(Math.floor(-table['NUM'][i])), 'rounding, i=' + i);
   }
 });

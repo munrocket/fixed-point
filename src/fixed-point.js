@@ -46,22 +46,28 @@ class FixedPoint {
   static div(a, b) { return FixedPoint._div(a.num * FixedPoint._SC, b.num); }
 
   static _div(p, q) {
-    let r;
+    let f;
     switch (FixedPoint.MODE) {
       case 0: // RN
-        r = ((p < 0) ^ (q < 0)) ? ((p - q/2n)/q) : ((p + q/2n)/q);
+        const pa = p < 0 ? -p : p, qa = q < 0 ? -q : q;
+        const r = pa % qa, r2 = r * 2n;
+        f = pa / qa;
+        if (r2 > qa || (r2 == qa && f % 2n == 1n)) { f = f + 1n; }
+        if (p > 0 ^ q > 0) { f = -f; }
         break;
       case 1: // RZ
-        r = p/q;
+        f = p / q;
         break;
       case 2: // RU
-        r = (p <= 0) ? p/q : ((p - 1n)/q) + 1n;
+        if (q < 0) { p = -p; q = -q; }
+        f = (p <= 0) ? p / q : ((p - 1n) / q) + 1n;
         break;
       case 3: // RD
-        r = (p >= 0) ? p/q : ((p + 1n)/q) - 1n;
+        if (q < 0) { p = -p; q = -q; }
+        f = (p >= 0) ? p / q : ((p + 1n) / q) - 1n;
         break;
     }
-    return new FixedPoint(r);
+    return new FixedPoint(f);
   }
 
   toFixed() {

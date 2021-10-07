@@ -23,6 +23,6 @@ Experimental.
 - [x] toString/toFixed
 - [x] +|- (exact)
 - [x] *|/ (rounded)
-- [x] 4 rounding modes (according to IEEE-754 1985: RN, RZ, RU, RD)
-- [ ] heavy testing for rounding
+- [x] 4 rounding modes according to IEEE 754-1985: RN, RZ, RU, RD
+- [x] heavy testing for rounding
 - [ ] Get feedback
