@@ -1,22 +1,5 @@
-function _divRound(r, p, q) {
-  switch (FixedPoint.MODE) {
-    case 0:
-      if (p % q > q / 2n) r = r + 1n;
-      break;
-    case 1:
-      break;
-    case 2:
-      if (r > 0) r = r + 1n;
-      break;
-    case 3:
-      if (r < 0) r = r - 1n;
-      break;
-  }
-  return r;
-}
-
 class FixedPoint {
-  static MODE = 1;      // rounding modes according ieee-754 1985 (0 - RN, 1 - RZ, 2 - RU, 3 - RD)
+  static MODE = 0;      // rounding modes according ieee-754 1985 (0 - RN, 1 - RZ, 2 - RU, 3 - RD)
   static _DP = 2;       // stores number of decimal places after point
   static _SC = 100n;    // decimal scale (10n ** _DP)
   num;                  // internal bigint number
@@ -51,31 +34,33 @@ class FixedPoint {
     } else {
       const end = i + 1 + FixedPoint._DP;
       const tail = end - s.length;
-      if (tail > 0) s += '0'.repeat(tail);
+      if (tail > 0) { s += '0'.repeat(tail); }
       s = s.slice(0, i) + s.slice(i + 1, end);
     }
     return new FixedPoint(BigInt(s));
   }
 
-  static add(a, b) {
-    return new FixedPoint(a.num + b.num);
-  }
+  static add(a, b) { return new FixedPoint(a.num + b.num); }
+  static sub(a, b) { return new FixedPoint(a.num - b.num); }
+  static mul(a, b) { return FixedPoint._div(a.num * b.num, FixedPoint._SC); }
+  static div(a, b) { return FixedPoint._div(a.num * FixedPoint._SC, b.num); }
 
-  static sub(a, b) {
-    return new FixedPoint(a.num - b.num);
-  }
-
-  static mul(a, b) {
-    let p = a.num * b.num;
-    let q = FixedPoint._SC;
-    let r = _divRound(p / q, p, q);
-    return new FixedPoint(r);
-  }
-
-  static div(a, b) {
-    let p = a.num * FixedPoint._SC;
-    let q = b.num;
-    let r = _divRound(p / q, p, q);
+  static _div(p, q) {
+    let r;
+    switch (FixedPoint.MODE) {
+      case 0: // RN
+        r = ((p < 0) ^ (q < 0)) ? ((p - q/2n)/q) : ((p + q/2n)/q);
+        break;
+      case 1: // RZ
+        r = p/q;
+        break;
+      case 2: // RU
+        r = (p <= 0) ? p/q : ((p - 1n)/q) + 1n;
+        break;
+      case 3: // RD
+        r = (p >= 0) ? p/q : ((p + 1n)/q) - 1n;
+        break;
+    }
     return new FixedPoint(r);
   }
 
@@ -85,13 +70,13 @@ class FixedPoint {
     if (i <= 0) {
       return '0.' + '0'.repeat(-i) + s;
     } else {
-      return s.slice(0, i) + '.' + s.slice(i);
+      return (i >= s.length) ? s : s.slice(0, i) + '.' + s.slice(i);
     }
   }
 
   toString() {
     const s = this.toFixed();
-    return (s.indexOf('.') == -1) ? s : s.replace(/\.?0+$/, '');
+    return (s.indexOf('.') == -1) ? s : s.replace(/\.?0*$/, '');
   }
 
   add(b) { return FixedPoint.add(this, new FixedPoint(b)); }

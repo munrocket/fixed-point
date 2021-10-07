@@ -17,7 +17,6 @@
   "devDependencies": {
     "esbuild": "^0.13.3",
     "esm": "^3.2.25",
-    "zora": "^5.0.0",
-    "zora-reporters": "^1.1.0"
+    "zora": "^5.0.0"
   }
 }

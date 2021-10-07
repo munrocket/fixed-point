@@ -8,9 +8,9 @@ import { FixedPoint } from 'fixed-point';
 // Classic example: 0.3 - 0.2 = 0.1
 console.log(new FixedPoint(0.3).sub(0.2).toString());
 
-// Bitcoin commission 1.0 BTC - 0.0005 BTC: 0.99950000
+// Bitcoin commission 1.0 BTC - 0.0005 BTC: 0.99950000 BTC
 FixedPoint.setDP(8);
-console.log(new FixedPoint('1').sub('0.0005').toFixed());
+console.log(new FixedPoint('1').sub('0.0005').toFixed() + ' BTC');
 ```
 
 ### Status
@@ -23,7 +23,6 @@ Experimental.
 - [x] toString/toFixed
 - [x] +|- (exact)
 - [x] *|/ (rounded)
-- [x] 4 rounding modes (according to IEEE 754-1985: RN, RZ, RU, RD)
-- [ ] fix edge cases in rounding!
+- [x] 4 rounding modes (according to IEEE-754 1985: RN, RZ, RU, RD)
+- [ ] heavy testing for rounding
 - [ ] Get feedback
-- [ ] ??
