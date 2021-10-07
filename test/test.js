@@ -135,3 +135,12 @@ test('rounding', t => {
     t.equal(new FixedPoint(table['NUM'][i]).div(-100).num, BigInt(Math.floor(-table['NUM'][i])), 'rounding, i=' + i);
   }
 });
+
+test('comparisons', t => {
+  t.ok(new FixedPoint(3.14).eq(3.14) && new FixedPoint(3.14).ne(2), 'eq, ne (true)');
+  t.ok(!new FixedPoint(3.14).eq('4') && !new FixedPoint(3.14).ne(3.14), 'eq, ne (false)');
+  t.ok(new FixedPoint(3.14).lt('4') && new FixedPoint(3.14).le(4) && new FixedPoint(4).le(4), 'lt, le (true)');
+  t.ok(!new FixedPoint(3.14).lt('3.14') && !new FixedPoint(3.14).lt(1) && !new FixedPoint(3.14).le(1), 'lt, le (false)');
+  t.ok(new FixedPoint(3.14).gt('1') && new FixedPoint(1).ge(1) && new FixedPoint(3.14).ge(1), 'gt, ge (true)');
+  t.ok(!new FixedPoint(1).gt(1) && !new FixedPoint(3.14).gt(4) && !new FixedPoint(3.14).ge(4), 'gt, ge (false)');
+});
