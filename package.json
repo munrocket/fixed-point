@@ -4,7 +4,10 @@
   "description": "Fixed point arithmetic with BigInt. Can be used for money or scientific calculations with known precision.",
   "main": "src/index.js",
   "scripts": {
-    "build": "esbuild ./src/fixed-point.js --minify --outfile=./build/fixed-point.js",
+    "watch": "esbuild ./src/fixed-point.ts --outfile=./build/fixed-point.js --watch",
+    "build": "npm run build-esm && npm run build-browser",
+    "build-esm": "esbuild ./src/fixed-point.ts --outfile=./build/fixed-point.js",
+    "build-browser": "esbuild ./src/fixed-point.ts --bundle --minify --outfile=./build/fixed-point.min.js",
     "test": "node -r esm ./test/test.js"
   },
   "keywords": [

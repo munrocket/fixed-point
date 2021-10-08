@@ -1,12 +1,12 @@
-function _div(p, q) {
-  let r;
+function _div(p: bigint, q: bigint): FixedPoint {
+  let r: bigint;
   switch (FixedPoint.MODE) {
     case 0: // RN
       const pa = p < 0 ? -p : p, qa = q < 0 ? -q : q;
       r = pa / qa;
       const h = (pa % qa) * 2n;
-      if (h > qa || (h == qa && BigInt.asUintN(2, r) == 1)) { r = r + 1n; }
-      if (p > 0 ^ q > 0) { r = -r; }
+      if (h > qa || (h == qa && BigInt.asUintN(2, r) == 1n)) { r = r + 1n; }
+      if (p > 0 !== q > 0) { r = -r; }
 
       // BENCHMARK NEW ALGO
       // if (q < 0) { p = -p; q = -q; }
@@ -34,34 +34,34 @@ function _div(p, q) {
   return new FixedPoint(r);
 }
 class FixedPoint {
-  static MODE = 0;      // rounding modes (0 - RN, 1 - RZ, 2 - RU, 3 - RD)
-  static _DP = 2;       // stores number of decimal places after point
-  static _SC = 100n;    // decimal scale (10n ** _DP)
-  num;                  // internal bigint number
+  static MODE: number = 0;      // rounding modes (0 - RN, 1 - RZ, 2 - RU, 3 - RD)
+  static _DP: number = 2;       // stores number of decimal places after point
+  static _SC: bigint = 100n;    // decimal scale (10n ** _DP)
+  bn: bigint;                   // internal big integer number
 
-  static setMode(mode) {
+  static setMode(mode: string) {
     let id = ['RN', 'RZ', 'RU', 'RD'].indexOf(mode);
     FixedPoint.MODE = id;
   }
 
-  static setDP(dp) {
+  static setDP(dp: number) {
     FixedPoint._DP = dp;
     FixedPoint._SC = 10n ** BigInt(dp);
   }
 
-  constructor(obj) {
+  constructor(obj?: number | string | BigInt | FixedPoint) {
     if (typeof obj === 'bigint') {
-      this.num = obj;
+      this.bn = obj;
     } else if (typeof obj === 'number') {
       return FixedPoint.fromString(obj.toFixed(FixedPoint._DP));
     } else if (typeof obj === 'string') {
       return FixedPoint.fromString(obj);
     } else if (obj instanceof FixedPoint) {
-      this.num = obj.num;
+      this.bn = obj.bn;
     }
   }
 
-  static fromString(s) {
+  static fromString(s: string): FixedPoint {
     const i = s.indexOf('.');
     if (s == 'NaN' || s == 'Infinity' || s == '-Infinity') { BigInt(s); }
     if (i == -1) {
@@ -76,7 +76,7 @@ class FixedPoint {
   }
 
   toFixed() {
-    const s = this.num.toString();
+    const s = this.bn.toString();
     const i = s.length - FixedPoint._DP;
     if (i <= 0) {
       return '0.' + '0'.repeat(-i) + s;
@@ -90,27 +90,16 @@ class FixedPoint {
     return (s.indexOf('.') == -1) ? s : s.replace(/\.?0*$/, '');
   }
 
-  static add(a, b) { return new FixedPoint(a.num + (new FixedPoint(b)).num); }
-  static sub(a, b) { return new FixedPoint(a.num - (new FixedPoint(b)).num); }
-  static mul(a, b) { return _div(a.num * (new FixedPoint(b)).num, FixedPoint._SC); }
-  static div(a, b) { return _div(a.num * FixedPoint._SC, (new FixedPoint(b)).num); }
-  static eq(a, b) { return a.num == (new FixedPoint(b)).num; }
-  static ne(a, b) { return a.num != (new FixedPoint(b)).num; }
-  static gt(a, b) { return a.num > (new FixedPoint(b)).num; }
-  static ge(a, b) { return a.num >= (new FixedPoint(b)).num; }
-  static lt(a, b) { return a.num < (new FixedPoint(b)).num; }
-  static le(a, b) { return a.num <= (new FixedPoint(b)).num; }
-
-  add(b) { return FixedPoint.add(this, new FixedPoint(b)); }
-  sub(b) { return FixedPoint.sub(this, new FixedPoint(b)); }
-  mul(b) { return FixedPoint.mul(this, new FixedPoint(b)); }
-  div(b) { return FixedPoint.div(this, new FixedPoint(b)); }
-  eq(b) { return FixedPoint.eq(this, new FixedPoint(b)); }
-  ne(b) { return FixedPoint.ne(this, new FixedPoint(b)); }
-  gt(b) { return FixedPoint.gt(this, new FixedPoint(b)); }
-  ge(b) { return FixedPoint.ge(this, new FixedPoint(b)); }
-  lt(b) { return FixedPoint.lt(this, new FixedPoint(b)); }
-  le(b) { return FixedPoint.le(this, new FixedPoint(b)); }
+  add(b: number | string | FixedPoint): FixedPoint { return new FixedPoint(this.bn + new FixedPoint(b).bn); }
+  sub(b: number | string | FixedPoint): FixedPoint { return new FixedPoint(this.bn - new FixedPoint(b).bn); }
+  mul(b: number | string | FixedPoint): FixedPoint { return _div(this.bn * new FixedPoint(b).bn, FixedPoint._SC); }
+  div(b: number | string | FixedPoint): FixedPoint { return _div(this.bn * FixedPoint._SC, new FixedPoint(b).bn); }
+  eq(b: number | string | FixedPoint): Boolean { return this.bn == new FixedPoint(b).bn; }
+  ne(b: number | string | FixedPoint): Boolean { return this.bn != new FixedPoint(b).bn; }
+  gt(b: number | string | FixedPoint): Boolean { return this.bn > new FixedPoint(b).bn; }
+  ge(b: number | string | FixedPoint): Boolean { return this.bn >= new FixedPoint(b).bn; }
+  lt(b: number | string | FixedPoint): Boolean { return this.bn < new FixedPoint(b).bn; }
+  le(b: number | string | FixedPoint): Boolean { return this.bn <= new FixedPoint(b).bn; }
 }
 
-export { FixedPoint as default };
+export { FixedPoint };
