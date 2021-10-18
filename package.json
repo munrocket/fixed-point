@@ -1,13 +1,14 @@
 {
-  "name": "y",
+  "name": "fixed-point",
   "version": "0.8.0",
-  "description": "Fixed point arithmetic with BigInt. Can be used for money or scientific calculations with known precision.",
+  "description": "Fixed point arithmetic with BigInt. Minimalistic library for money or scientific calculations with fixed precision.",
   "main": "src/index.js",
   "scripts": {
-    "watch": "esbuild ./src/fixed-point.ts --outfile=./build/fixed-point.js --watch",
     "build": "npm run build-esm && npm run build-browser",
     "build-esm": "esbuild ./src/fixed-point.ts --outfile=./build/fixed-point.js",
     "build-browser": "esbuild ./src/fixed-point.ts --bundle --minify --outfile=./build/fixed-point.min.js",
+    "watch": "esbuild ./src/fixed-point.ts --outfile=./build/fixed-point.js --watch",
+    "start": "servez",
     "test": "node -r esm ./test/test.js"
   },
   "keywords": [
@@ -22,6 +23,7 @@
   "devDependencies": {
     "esbuild": "^0.13.3",
     "esm": "^3.2.25",
+    "servez": "^1.12.0",
     "zora": "^5.0.0",
     "zora-reporters": "^1.1.0"
   }

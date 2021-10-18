@@ -1,5 +1,5 @@
 # 🗿 fixed-point
-Fixed point arithmetic with BigInt. Minimalistic library that can be used for money or scientific calculations with known precision.
+Fixed point arithmetic with BigInt. Minimalistic library for money or scientific calculations with known precision.
 
 ### Examples
 
@@ -53,6 +53,6 @@ console.log(new FixedPoint('3.14159265358979').mul('2'));
 - [x] 4 rounding modes from IEEE 754-1985: RN, RZ, RU, RD
 - [x] testing rounding modes with table
 - [x] get feedback
-- [ ] add benchmark
+- [x] add benchmark
 - [ ] add precision conversion: x.xxxxxxxx BTC in xx.xx $
 - [ ] add build with BigInt polyfill

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Benchmark</title>
+  <link rel="icon" href="data:;base64,iVBORwOKGO=" />
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+</head>
+<body>
+  <h1 id="title">Loading libraries...</h1>
+  <div style="display: flex; justify-content: left; align-items: center; height: 200px;">
+    <div style="width: 400px; align-content: center;">
+      <canvas id="split-test" style="width: 400px; height: 200px;"></canvas>
+    </div>
+    <div id="bar-chart" style="padding-left: 10px; width: 500px; height: 200px;"></div>
+  </div>
+  <div class="bench-popup" style="display: none; font-family: 'Open Sans', sans; padding-top: 10px">
+    All libraries in benchmark spending 1000 milliseconds and setted to precision with 2 decimal digits. <br>
+    To increase Big.js and BigNumber.js performance .round() and .dp() is used.
+  </div>
+  <div style="padding-top: 10px">
+    <span><canvas id="withFixedPoint" width="15" height="10"></canvas></span>
+    <span><canvas id="withDecimalJs" width="15" height="10"></canvas></span>
+    <span><canvas id="withBigNumberJs" width="15" height="10"></canvas></span>
+    <span><canvas id="withBigJs" width="15" height="10"></canvas></span>
+    <span><canvas id="withYaffleBigDecimal" width="15" height="10"></canvas></span>
+  </div>
+  <div id="log"></div>
+
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://unpkg.com/decimal.js"></script>
+  <script src="https://unpkg.com/bignumber.js"></script>
+  <script src="https://unpkg.com/big.js"></script>
+  <script src="./bench.js" type="module"></script>
+</body>
