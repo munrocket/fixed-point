@@ -1,25 +1,28 @@
-import { test } from 'zora';
+import { hold, test, report } from 'zora';
+import { createDiffReporter } from 'zora-reporters';
 import { FixedPoint } from '../build/fixed-point.js';
 
 // Usefull helper
-function withDP(dp, f) {
-  let prevDP = FixedPoint._DP;
-  FixedPoint.setDP(dp);
+function withPrecision(dp, f) {
+  let dp0 = FixedPoint._DP;
+  FixedPoint.setPrecision(dp);
   f();
-  FixedPoint.setDP(prevDP);
+  FixedPoint.setPrecision(dp0);
 }
+
+hold();
 
 test('constructors', t => {
   t.equal(new FixedPoint(2n).bn, 2n, 'BigInt');
   t.equal(new FixedPoint(20).bn, 2000n, 'Number as integer)');
   t.equal(new FixedPoint(2.2).bn, 220n, 'Number as decimal');
   t.equal(new FixedPoint(0.01).bn, 1n, 'Number as one cent');
-  t.equal(new FixedPoint(0.00).bn, 0n, 'Number as zero');
-  t.equal(new FixedPoint(0.22).bn, 22n, 'Number below zero');
+  t.equal(new FixedPoint(0.00).bn, 0n, 'Number as trunc');
+  t.equal(new FixedPoint(0.22).bn, 22n, 'Number below trunc');
   t.equal(new FixedPoint(2.2222).bn, 222n, 'Number as oveflowed decimal');
   //t.equal(new FixedPoint(2.2299).bn, 222n, 'Number as oveflowed decimal');
   t.equal(new FixedPoint(new FixedPoint(2n)).bn, 2n, 'FixedPoint instance');
-  withDP(0, () => {
+  withPrecision(0, () => {
     t.equal(new FixedPoint(2).bn, 2n, 'Constructor with changed DP');
   });
 });
@@ -30,7 +33,7 @@ test('fromString', t => {
   t.equal(new FixedPoint('0.2').bn, 20n, 'String as one cent');
   t.equal(new FixedPoint('2.2').bn, 220n, 'String as decimal');
   t.equal(new FixedPoint('2.2222').bn, 222n, 'String as oveflowed decimal');
-  t.equal(new FixedPoint('0.22222').bn, 22n, 'String as below zero');
+  t.equal(new FixedPoint('0.22222').bn, 22n, 'String as below trunc');
   try { new FixedPoint(NaN) } catch (e) { t.equal(e.message, 'Cannot convert NaN to a BigInt', 'NaN') }
   try { new FixedPoint('Infinity') } catch (e) { t.equal(e.message, 'Cannot convert Infinity to a BigInt', 'Inf') }
   try { new FixedPoint(-Infinity) } catch (e) { t.equal(e.message, 'Cannot convert -Infinity to a BigInt', '-Inf') }
@@ -41,9 +44,9 @@ test('toFixed', t => {
   t.equal(new FixedPoint('2.2').toFixed(), '2.20', 'decimal');
   t.equal(new FixedPoint('2.2222').toFixed(), '2.22', 'oveflowed decimal');
   t.equal(new FixedPoint('0.01').toFixed(), '0.01', 'one cent');
-  t.equal(new FixedPoint('0.22222').toFixed(), '0.22', 'below zero');
-  withDP(0, () => {
-    t.equal(new FixedPoint('20').toFixed(), '20', 'zero DP');
+  t.equal(new FixedPoint('0.22222').toFixed(), '0.22', 'below trunc');
+  withPrecision(0, () => {
+    t.equal(new FixedPoint('20').toFixed(), '20', 'trunc DP');
   });
 });
 
@@ -56,42 +59,42 @@ test('toString', t => {
 
 test('arithmetic without rounding', t => {
   t.equal((new FixedPoint(10).add(0.2)).bn, 1020n, 'addition');
-  t.equal((new FixedPoint(0.2).add(-0.2)).toString(), '0', 'zero');
+  t.equal((new FixedPoint(0.2).add(-0.2)).toString(), '0', 'trunc');
   t.equal((new FixedPoint(0.3).sub('0.1')).toString(), '0.2', 'substraction');
-  t.equal((new FixedPoint(0.3).sub(30n)).toString(), '0', 'zero');
-  withDP(8, () => {
+  t.equal((new FixedPoint(0.3).sub(30n)).toString(), '0', 'trunc');
+  withPrecision(8, () => {
     t.equal((new FixedPoint(1).sub(0.0005)).toFixed(), '0.99950000', 'BTC precision');
   });
 });
 
 test('multiplication', t => {
-  FixedPoint.setMode('RN');
-  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'RN1');
-  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.04', 'RN2');
-  FixedPoint.setMode('RZ');
-  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'RZ');
-  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.03', 'RZ2');
-  FixedPoint.setMode('RU');
-  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.03', 'RU');
-  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.04', 'RU2');
-  FixedPoint.setMode('RD');
-  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'RD');
-  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.03', 'RD2');
+  FixedPoint.setRounding('trunc');
+  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'trunc');
+  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.03', 'trunc2');
+  FixedPoint.setRounding('ceil');
+  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.03', 'ceil');
+  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.04', 'ceil2');
+  FixedPoint.setRounding('floor');
+  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'floor');
+  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.03', 'floor2');
+  FixedPoint.setRounding('even');
+  t.equal(new FixedPoint(0.11).mul(0.22).toFixed(), '0.02', 'even');
+  t.equal(new FixedPoint(0.11).mul(0.33).toFixed(), '0.04', 'even2');
 });
 
 test('division', t => {
-  FixedPoint.setMode('RN');
-  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'RN1');
-  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.71', 'RN1');
-  FixedPoint.setMode('RZ');
-  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'RZ');
-  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.70', 'RN1');
-  FixedPoint.setMode('RU');
-  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.83', 'RU');
-  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.71', 'RN1');
-  FixedPoint.setMode('RD');
-  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'RD');
-  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.70', 'RN1');
+  FixedPoint.setRounding('trunc');
+  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'trunc');
+  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.70', 'trunc2');
+  FixedPoint.setRounding('ceil');
+  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.83', 'ceil');
+  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.71', 'ceil2');
+  FixedPoint.setRounding('floor');
+  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'floor');
+  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.70', 'floor2');
+  FixedPoint.setRounding('even');
+  t.equal(new FixedPoint(2.33).div(0.4).toFixed(), '5.82', 'even');
+  t.equal(new FixedPoint(23.3).div(2.4).toFixed(), '9.71', 'even2');
 });
 
 // Patch BigInt for testing
@@ -110,29 +113,29 @@ test('rounding modes', t => {
     'HALFDOWN': [-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-0,-0,-0,-0,-0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
     'HALFUP':   [-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-0,-0,-0,-0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
   };
-  FixedPoint.setMode('RN');
+  FixedPoint.setRounding('trunc');
   for (let i = 0; i < 41; i++) {
-    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['HALFEVEN'][i]), 'RN, i=' + i);
-    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['HALFEVEN'][i]), 'RN, i=' + i);
-    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, -BigInt(table['HALFEVEN'][i]), 'RN, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['ZERO'][i]), 'trunc, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['ZERO'][i]), 'trunc, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, -BigInt(table['ZERO'][i]), 'trunc, i=' + i);
   }
-  FixedPoint.setMode('RZ');
+  FixedPoint.setRounding('ceil');
   for (let i = 0; i < 41; i++) {
-    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['ZERO'][i]), 'RZ, i=' + i);
-    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['ZERO'][i]), 'RZ, i=' + i);
-    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, -BigInt(table['ZERO'][i]), 'RZ, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['CEILING'][i]), 'ceil, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['CEILING'][i]), 'ceil, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, BigInt(Math.ceil(-table['NUM'][i])), 'ceil, i=' + i);
   }
-  FixedPoint.setMode('RU');
+  FixedPoint.setRounding('floor');
   for (let i = 0; i < 41; i++) {
-    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['CEILING'][i]), 'RU, i=' + i);
-    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['CEILING'][i]), 'RU, i=' + i);
-    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, BigInt(Math.ceil(-table['NUM'][i])), 'RU, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['FLOOR'][i]), 'floor, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['FLOOR'][i]), 'floor, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, BigInt(Math.floor(-table['NUM'][i])), 'floor, i=' + i);
   }
-  FixedPoint.setMode('RD');
+  FixedPoint.setRounding('even');
   for (let i = 0; i < 41; i++) {
-    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['FLOOR'][i]), 'RD, i=' + i);
-    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['FLOOR'][i]), 'RD, i=' + i);
-    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, BigInt(Math.floor(-table['NUM'][i])), 'RD, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(100).bn, BigInt(table['HALFEVEN'][i]), 'even, i=' + i);
+    t.equal(new FixedPoint(-table['NUM'][i]).div(-100).bn, BigInt(table['HALFEVEN'][i]), 'even, i=' + i);
+    t.equal(new FixedPoint(table['NUM'][i]).div(-100).bn, -BigInt(table['HALFEVEN'][i]), 'even, i=' + i);
   }
 });
 
@@ -144,3 +147,5 @@ test('comparisons', t => {
   t.ok(new FixedPoint(3.14).gt('1') && new FixedPoint(1).ge(1) && new FixedPoint(3.14).ge(1), 'gt, ge (true)');
   t.ok(!new FixedPoint(1).gt(1) && !new FixedPoint(3.14).gt(4) && !new FixedPoint(3.14).ge(4), 'gt, ge (false)');
 });
+
+report({reporter: createDiffReporter()});

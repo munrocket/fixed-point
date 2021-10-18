@@ -1,6 +1,6 @@
 {
   "name": "y",
-  "version": "0.0.1",
+  "version": "0.8.0",
   "description": "Fixed point arithmetic with BigInt. Can be used for money or scientific calculations with known precision.",
   "main": "src/index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "keywords": [
     "fixed",
     "money",
+    "arbitrary-precision",
     "bigint",
     "bigdecimal"
   ],
@@ -21,6 +22,7 @@
   "devDependencies": {
     "esbuild": "^0.13.3",
     "esm": "^3.2.25",
-    "zora": "^5.0.0"
+    "zora": "^5.0.0",
+    "zora-reporters": "^1.1.0"
   }
 }

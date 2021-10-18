@@ -1,13 +1,24 @@
 function _div(p: bigint, q: bigint): FixedPoint {
   let r: bigint;
   switch (FixedPoint.MODE) {
-    case 0: // RN
+    case 0: // trunc (round toward 0)
+      r = p / q;
+      break;
+    case 1: // ceil (round toward +∞)
+      if (q < 0) { p = -p; q = -q; }
+      r = (p <= 0) ? p / q : ((p - 1n) / q) + 1n;
+      break;
+    case 2: // floor (round toward -∞)
+      if (q < 0) { p = -p; q = -q; }
+      r = (p >= 0) ? p / q : ((p + 1n) / q) - 1n;
+      break;
+    case 3: // even (round-to-nearest-even)
       const pa = p < 0 ? -p : p, qa = q < 0 ? -q : q;
       r = pa / qa;
       const h = (pa % qa) * 2n;
       if (h > qa || (h == qa && BigInt.asUintN(2, r) == 1n)) { r = r + 1n; }
       if (p > 0 !== q > 0) { r = -r; }
-
+      
       // BENCHMARK NEW ALGO
       // if (q < 0) { p = -p; q = -q; }
       // r = p / q;
@@ -17,34 +28,22 @@ function _div(p: bigint, q: bigint): FixedPoint {
       // } else {
       //   if (h < -q || (h == -q && r % 2n == -1n)) r = r - 1n;
       // }
-
-      break;
-    case 1: // RZ
-      r = p / q;
-      break;
-    case 2: // RU
-      if (q < 0) { p = -p; q = -q; }
-      r = (p <= 0) ? p / q : ((p - 1n) / q) + 1n;
-      break;
-    case 3: // RD
-      if (q < 0) { p = -p; q = -q; }
-      r = (p >= 0) ? p / q : ((p + 1n) / q) - 1n;
       break;
   }
   return new FixedPoint(r);
 }
 class FixedPoint {
-  static MODE: number = 0;      // rounding modes (0 - RN, 1 - RZ, 2 - RU, 3 - RD)
-  static _DP: number = 2;       // stores number of decimal places after point
+  static MODE: number = 3;      // rounding mode (0 - trunc, 1 - ceil, 2 - floor, 3 - even)
+  static _DP: number = 2;       // decimal places after point
   static _SC: bigint = 100n;    // decimal scale (10n ** _DP)
-  bn: bigint;                   // internal big integer number
+  bn: bigint;                   // big integer number
 
-  static setMode(mode: string) {
-    let id = ['RN', 'RZ', 'RU', 'RD'].indexOf(mode);
+  static setRounding(mode: string) {
+    let id = ['trunc', 'ceil', 'floor', 'even'].indexOf(mode);
     FixedPoint.MODE = id;
   }
 
-  static setDP(dp: number) {
+  static setPrecision(dp: number) {
     FixedPoint._DP = dp;
     FixedPoint._SC = 10n ** BigInt(dp);
   }

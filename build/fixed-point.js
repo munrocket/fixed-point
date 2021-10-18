@@ -2,6 +2,23 @@ function _div(p, q) {
   let r;
   switch (FixedPoint.MODE) {
     case 0:
+      r = p / q;
+      break;
+    case 1:
+      if (q < 0) {
+        p = -p;
+        q = -q;
+      }
+      r = p <= 0 ? p / q : (p - 1n) / q + 1n;
+      break;
+    case 2:
+      if (q < 0) {
+        p = -p;
+        q = -q;
+      }
+      r = p >= 0 ? p / q : (p + 1n) / q - 1n;
+      break;
+    case 3:
       const pa = p < 0 ? -p : p, qa = q < 0 ? -q : q;
       r = pa / qa;
       const h = pa % qa * 2n;
@@ -12,32 +29,15 @@ function _div(p, q) {
         r = -r;
       }
       break;
-    case 1:
-      r = p / q;
-      break;
-    case 2:
-      if (q < 0) {
-        p = -p;
-        q = -q;
-      }
-      r = p <= 0 ? p / q : (p - 1n) / q + 1n;
-      break;
-    case 3:
-      if (q < 0) {
-        p = -p;
-        q = -q;
-      }
-      r = p >= 0 ? p / q : (p + 1n) / q - 1n;
-      break;
   }
   return new FixedPoint(r);
 }
 const _FixedPoint = class {
-  static setMode(mode) {
-    let id = ["RN", "RZ", "RU", "RD"].indexOf(mode);
+  static setRounding(mode) {
+    let id = ["trunc", "ceil", "floor", "even"].indexOf(mode);
     _FixedPoint.MODE = id;
   }
-  static setDP(dp) {
+  static setPrecision(dp) {
     _FixedPoint._DP = dp;
     _FixedPoint._SC = 10n ** BigInt(dp);
   }
@@ -114,7 +114,7 @@ const _FixedPoint = class {
   }
 };
 let FixedPoint = _FixedPoint;
-FixedPoint.MODE = 0;
+FixedPoint.MODE = 3;
 FixedPoint._DP = 2;
 FixedPoint._SC = 100n;
 export { FixedPoint };
