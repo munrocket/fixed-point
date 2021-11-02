@@ -16,22 +16,12 @@ function _div(p: bigint, q: bigint): FixedPoint {
       const pa = p < 0 ? -p : p, qa = q < 0 ? -q : q;
       r = pa / qa;
       const h = (pa % qa) * 2n;
-      if (h > qa || (h == qa && BigInt.asUintN(2, r) == 1n)) { r = r + 1n; }
+      if (h > qa || (h == qa && r % 2n == 1n)) { r = r + 1n; }
       if (p > 0 !== q > 0) { r = -r; }
-      
-      // BENCHMARK NEW ALGO
-      // if (q < 0) { p = -p; q = -q; }
-      // r = p / q;
-      // const h = (p % q) * 2n;
-      // if (p > 0) {
-      //   if (h > q || (h == q && r % 2n == 1n)) r = r + 1n;
-      // } else {
-      //   if (h < -q || (h == -q && r % 2n == -1n)) r = r - 1n;
-      // }
-      break;
   }
   return new FixedPoint(r);
 }
+
 class FixedPoint {
   static MODE: number = 3;      // rounding mode (0 - trunc, 1 - ceil, 2 - floor, 3 - even)
   static _DP: number = 2;       // decimal places after point
