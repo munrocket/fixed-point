@@ -45,8 +45,6 @@ console.log(new FixedPoint('3.14159265358979').mul('2'));
 * `a.lt(b)` - `a < b`
 * `a.le(b)` - `a <= b`
 
-> Status: alpha.
-
 ### 2do
 - [x] constructors, toString/toFixed
 - [x] operations: +|-|*|/
@@ -56,3 +54,6 @@ console.log(new FixedPoint('3.14159265358979').mul('2'));
 - [x] add benchmark
 - [ ] add precision conversion: x.xxxxxxxx BTC in xx.xx $
 - [ ] add build with BigInt polyfill
+
+### Motivation
+This library was inspired by conversion in decimal-proposal, also by Yaffle PR in extra-bigint
